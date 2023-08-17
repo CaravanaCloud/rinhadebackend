@@ -1,9 +1,13 @@
 package org.acme;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.NamedQueries;
 import jakarta.persistence.NamedQuery;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
@@ -15,7 +19,9 @@ import java.util.List;
 import java.util.UUID;
 
 @Entity
-@NamedQuery(name = "Pessoa.count", query = "SELECT count(apelido) FROM Pessoa p")
+@NamedQueries({
+    @NamedQuery(name = "Pessoa.count", query = "SELECT count(apelido) FROM Pessoa p")
+})
 public class Pessoa {
 
     @Id
@@ -29,7 +35,9 @@ public class Pessoa {
     public String nome;
 
     @PastOrPresent
-    public LocalDate dataNascimento;
+    @Temporal(TemporalType.DATE)
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    public LocalDate nascimento;
 
     /**
      * Persiste em JSON
@@ -38,4 +46,15 @@ public class Pessoa {
     @NotEmpty
     public List<String> stack;
 
+
+    @Override
+    public String toString() {
+        return "Pessoa{" +
+                "id=" + id +
+                ", apelido='" + apelido + '\'' +
+                ", nome='" + nome + '\'' +
+                ", nascimento=" + nascimento +
+                ", stack=" + stack +
+                '}';
+    }
 }
