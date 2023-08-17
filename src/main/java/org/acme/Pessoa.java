@@ -20,7 +20,7 @@ import java.util.UUID;
 
 @Entity
 @NamedQueries({
-    @NamedQuery(name = "Pessoa.count", query = "SELECT count(apelido) FROM Pessoa p")
+    @NamedQuery(name = "Pessoa.count", query = "SELECT count(p.id) FROM Pessoa p")
 })
 public class Pessoa {
 

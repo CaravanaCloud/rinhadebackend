@@ -33,13 +33,7 @@ public class PessoaRoutes {
 
     @Route(methods = Route.HttpMethod.POST, path = "/pessoas", produces = ReactiveRoutes.APPLICATION_JSON, order = 2)
     Uni<Pessoa> createPessoa(@Body Pessoa pessoa, RoutingExchange ex) {
-        return sessionFactory.withTransaction(session -> session.persist(pessoa)
-                .onItemOrFailure().transformToUni((v, e) -> {
-                    if (e != null) {
-                        ex.response().setStatusCode(422).end();
-                    }
-                    return Uni.createFrom().item(v);
-                }).replaceWith(pessoa));
+        return sessionFactory.withStatelessSession(session -> session.insert(pessoa).replaceWith(pessoa));
     }
 
     @Route(methods = Route.HttpMethod.GET, path = "/pessoas/:id", produces = ReactiveRoutes.APPLICATION_JSON, order = 2)
