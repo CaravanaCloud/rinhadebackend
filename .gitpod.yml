@@ -6,7 +6,8 @@ tasks:
   - name: Init
     init: |
       mvn clean install
-      ln -sf "/worspace/rinha-de-backend-2023-q3" "$HOME/projects/rinha-de-backend-2023-q3"
+      mkdir -p "$HOME/projects/"
+      ln -sf "/workspace/rinha-de-backend-2023-q3" "$HOME/projects/rinha-de-backend-2023-q3"
       echo "done init rinha"
     command: echo "welcome to the rinha"
 
@@ -14,9 +15,26 @@ additionalRepositories:
     - url: https://github.com/zanfranceschi/rinha-de-backend-2023-q3
       checkoutLocation: rinha-de-backend-2023-q3
 
+vscode:
+  extensions:
+    - vscjava.vscode-java-pack
+    - vscjava.vscode-java-debug
+    - vscjava.vscode-java-dependency
+    - vscjava.vscode-java-test
+    - vscjava.vscode-maven
+    - redhat.java
+    - redhat.fabric8-analytics
+    - ms-azuretools.vscode-docker
+
 ports:
   - port: 3306
     onOpen: ignore
+  - port: 5000
+    onOpen: ignore
+    visibility: public
   - port: 8080
+    onOpen: ignore
+    visibility: public
+  - port: 9999
     onOpen: ignore
     visibility: public
