@@ -1,0 +1,7 @@
+image:
+  file: .gitpod.Dockerfile
+
+tasks:
+  - name: Init
+    init: mvn clean install
+    command: echo "welcome to the rinha"
