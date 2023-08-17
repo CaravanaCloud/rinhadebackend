@@ -5,3 +5,10 @@ tasks:
   - name: Init
     init: mvn clean install
     command: echo "welcome to the rinha"
+
+ports:
+  - port: 3306
+    onOpen: ignore
+  - port: 8080
+    onOpen: ignore
+    visibility: public
