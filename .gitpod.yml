@@ -1,10 +1,18 @@
+# https://gitpod.io/#https://github.com/CaravanaCloud/rinhadebackend
 image:
   file: .gitpod.Dockerfile
 
 tasks:
   - name: Init
-    init: mvn clean install
+    init: |
+      mvn clean install
+      ln -sf "/worspace/rinha-de-backend-2023-q3" "$HOME/projects/rinha-de-backend-2023-q3"
+      echo "done init rinha"
     command: echo "welcome to the rinha"
+
+additionalRepositories:
+    - url: https://github.com/zanfranceschi/rinha-de-backend-2023-q3
+      checkoutLocation: rinha-de-backend-2023-q3
 
 ports:
   - port: 3306
