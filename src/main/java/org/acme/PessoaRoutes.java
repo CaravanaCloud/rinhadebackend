@@ -33,7 +33,7 @@ public class PessoaRoutes {
     Mutiny.SessionFactory sessionFactory;
 
     @Route(methods = Route.HttpMethod.GET, path = "/contagem-pessoas", order = 2)
-    Uni<Long> countPessoas() {
+    Uni<Long> getContagemPessoas() {
         return sessionFactory.
                 withSession(session ->
                         session.createNamedQuery("Pessoa.count", Long.class)
@@ -41,10 +41,10 @@ public class PessoaRoutes {
     }
 
     @Route(methods = Route.HttpMethod.POST, path = "/pessoas", produces = ReactiveRoutes.APPLICATION_JSON, order = 2)
-    void createPessoa(RoutingContext routingContext, RoutingExchange ex) {
+    void postCreatePessoa(RoutingContext routingContext, RoutingExchange ex) {
         try {
-            JsonObject jsonObject = routingContext.body().asJsonObject();
-            Map<String, Object> attrs = jsonObject.getMap();
+            var jsonObject = routingContext.body().asJsonObject();
+            var attrs = jsonObject.getMap();
             if (isInvalid(attrs)) {
                 unprocessable(ex, "invalid");
                 return;
@@ -83,10 +83,9 @@ public class PessoaRoutes {
 
 
     @Route(methods = Route.HttpMethod.GET, path = "/pessoas/:id", produces = ReactiveRoutes.APPLICATION_JSON, order = 2)
-    void findPessoaById(@Param("id") Optional<String> uuidParam, RoutingExchange ex) {
-        // TODO: UUID pode ser inválido
+    void getPessoaById(@Param("id") Optional<String> uuidParam, RoutingExchange ex) {
         if (uuidParam.isEmpty()) {
-            ex.response().setStatusCode(400).end();
+            badRequest(ex, "empty uuid");
             return;
         }
         try {
@@ -104,7 +103,7 @@ public class PessoaRoutes {
             );
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
-            ex.response().setStatusCode(400).end();
+            badRequest(ex, "illegal argument" + e.getMessage());
         }
     }
 
