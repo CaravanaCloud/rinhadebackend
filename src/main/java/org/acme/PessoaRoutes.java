@@ -58,7 +58,13 @@ public class PessoaRoutes {
                             v -> response(ex, 201)
                                     .putHeader("Location", "/pessoas/" + pessoa.id)
                                     .end(),
-                            t -> {t.printStackTrace(); unprocessable(ex, t.getMessage());});
+                            t -> {
+                                if (t instanceof ConstraintViolationException){
+                                    unprocessable(ex, "constraint violation:" + t.getMessage());
+                                } else {
+                                    unprocessable(ex, "insert failed:"+t.getMessage());
+                                }
+                            });
         } catch (ConstraintViolationException e) {
             unprocessable(ex, "constraint violation:" + e.getMessage());
         }
