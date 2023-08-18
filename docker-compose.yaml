@@ -2,15 +2,15 @@ version: '3.5'
 services:
   db:
     image: postgres:latest
-    hostname: dbhost
+    hostname: db
     environment:
       - POSTGRES_PASSWORD=123
       - POSTGRES_USER=admin
       - POSTGRES_DB=rinha
     ports:
       - "5432:5432"
-#    volumes:
-#      - ./ddl.sql:/docker-entrypoint-initdb.d/ddl.sql
+    volumes:
+      - ./ddl.sql:/docker-entrypoint-initdb.d/ddl.sql
     deploy:
       resources:
         limits:
@@ -23,7 +23,8 @@ services:
     depends_on:
       - db
     environment:
-      - QUARKUS_DATASOURCE_REACTIVE_URL=postgresql://dbhost:5432/rinha
+      #- QUARKUS_DATASOURCE_REACTIVE_URL=postgresql://dbhost:5432/rinha
+      - QUARKUS_DATASOURCE_REACTIVE_URL=vertx-reactive:postgresql://db/rinha
       - QUARKUS_DATASOURCE_DB_KIND=postgresql
       - QUARKUS_DATASOURCE_USERNAME=admin
       - QUARKUS_DATASOURCE_PASSWORD=123
@@ -44,8 +45,9 @@ services:
     hostname: rinha-api02
     depends_on:
       - db
+      - api01
     environment:
-      - QUARKUS_DATASOURCE_REACTIVE_URL=postgresql://dbhost:5432/rinha
+      - QUARKUS_DATASOURCE_REACTIVE_URL=vertx-reactive:postgresql://db/rinha
       - QUARKUS_DATASOURCE_DB_KIND=postgresql
       - QUARKUS_DATASOURCE_USERNAME=admin
       - QUARKUS_DATASOURCE_PASSWORD=123
