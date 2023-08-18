@@ -37,28 +37,31 @@ public class PessoaRoutes {
 
     @Route(methods = Route.HttpMethod.POST, path = "/pessoas", produces = ReactiveRoutes.APPLICATION_JSON, order = 2)
     void createPessoa(RoutingContext routingContext, RoutingExchange ex) {
-        JsonObject jsonObject = routingContext.body().asJsonObject();
-        Map<String, Object> attrs = jsonObject.getMap();
-        if (isInvalid(attrs)) {
-            ex.response().setStatusCode(422).end();
-        } else if (isSyntheticallyInvalid(attrs)) {
-            ex.response().setStatusCode(400).end();
-        } else {
-            try {
-                var pessoa = jsonObject.mapTo(Pessoa.class);
-                sessionFactory.withStatelessSession(session -> session.insert(pessoa)).subscribe().with(
-                        v -> ex.response().setStatusCode(201).putHeader("Location", "/pessoas/" + pessoa.id).end(),
-                        t -> ex.response().setStatusCode(422).end()
-                );
-            } catch (DateTimeParseException e) {
-                unprocessable(ex, e, "date format is invalid");
+        try {
+            JsonObject jsonObject = routingContext.body().asJsonObject();
+            Map<String, Object> attrs = jsonObject.getMap();
+            if (isInvalid(attrs)) {
+                ex.response().setStatusCode(422).end();
+                return;
             }
-            catch (Exception e){
-                e.printStackTrace();
-                unprocessable(ex, e, e.getMessage());
+            if (isSyntheticallyInvalid(attrs)) {
+                ex.response().setStatusCode(400).end();
+                return;
             }
+            var pessoa = jsonObject.mapTo(Pessoa.class);
+            sessionFactory.withStatelessSession(session -> session.insert(pessoa)).subscribe().with(
+                    v -> ex.response().setStatusCode(201).putHeader("Location", "/pessoas/" + pessoa.id).end(),
+                    t -> ex.response().setStatusCode(422).end()
+            );
+        } catch (DateTimeParseException e) {
+            unprocessable(ex, e, "date format is invalid");
+        } catch (Exception e) {
+            e.printStackTrace();
+            unprocessable(ex, e, e.getMessage());
         }
     }
+
+}
 
     private void unprocessable(RoutingExchange ex, Exception e, String message) {
         ex.response()
@@ -86,7 +89,7 @@ public class PessoaRoutes {
                     },
                     t -> ex.response().setStatusCode(500).end()
             );
-        } catch (IllegalArgumentException e){
+        } catch (IllegalArgumentException e) {
             ex.response().setStatusCode(400).end();
         }
     }
