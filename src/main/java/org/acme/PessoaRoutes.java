@@ -62,7 +62,7 @@ public class PessoaRoutes {
                                     .end(),
                             t -> {
                                 if (t instanceof ConstraintViolationException) {
-                                    unprocessable(ex, "constraint violation:" + t.getMessage());
+                                    unprocessable(ex, "insert constraint violation:" + t.getMessage());
                                 } else {
                                     unprocessable(ex, "insert failed:" + t.getMessage());
                                 }
