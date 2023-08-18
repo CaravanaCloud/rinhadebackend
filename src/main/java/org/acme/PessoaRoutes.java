@@ -57,7 +57,7 @@ public class PessoaRoutes {
                             v -> response(ex, 201)
                                     .putHeader("Location", "/pessoas/" + pessoa.id)
                                     .end(),
-                            t -> unprocessable(ex, t.getMessage()));
+                            t -> {t.printStackTrace(); unprocessable(ex, t.getMessage());});
         } catch (IllegalArgumentException e){
             unprocessable(ex, "illegal argument:" + e.getMessage());
         }
@@ -109,6 +109,7 @@ public class PessoaRoutes {
                     t -> ex.response().setStatusCode(500).end()
             );
         } catch (IllegalArgumentException e) {
+            e.printStackTrace();
             ex.response().setStatusCode(400).end();
         }
     }
