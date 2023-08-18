@@ -11,6 +11,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.hibernate.reactive.mutiny.Mutiny;
 
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -29,7 +30,9 @@ public class PessoaRoutes {
     @Route(methods = Route.HttpMethod.GET, path = "/contagem-pessoas", order = 2)
     Uni<Long> countPessoas() {
         return sessionFactory.
-                withSession(session -> session.createNamedQuery("Pessoa.count", Long.class).getSingleResult());
+                withSession(session ->
+                        session.createNamedQuery("Pessoa.count", Long.class)
+                                .getSingleResult());
     }
 
     @Route(methods = Route.HttpMethod.POST, path = "/pessoas", produces = ReactiveRoutes.APPLICATION_JSON, order = 2)
@@ -47,10 +50,21 @@ public class PessoaRoutes {
                         v -> ex.response().setStatusCode(201).putHeader("Location", "/pessoas/" + pessoa.id).end(),
                         t -> ex.response().setStatusCode(422).end()
                 );
-            } catch (Exception e){
-                ex.response().setStatusCode(422).end();
+            } catch (DateTimeParseException e) {
+                unprocessable(ex, e, "date format is invalid");
+            }
+            catch (Exception e){
+                e.printStackTrace();
+                unprocessable(ex, e, e.getMessage());
             }
         }
+    }
+
+    private void unprocessable(RoutingExchange ex, Exception e, String message) {
+        ex.response()
+                .putHeader("x-unacceptable-message", message)
+                .setStatusCode(422)
+                .end();
     }
 
     @Route(methods = Route.HttpMethod.GET, path = "/pessoas/:id", produces = ReactiveRoutes.APPLICATION_JSON, order = 2)
