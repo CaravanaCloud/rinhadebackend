@@ -11,11 +11,11 @@ services:
       - "5432:5432"
     volumes:
       - ./ddl.sql:/docker-entrypoint-initdb.d/ddl.sql
-    deploy:
-      resources:
-        limits:
-          cpus: '0.15'
-          memory: '0.4GB'
+#    deploy:
+#      resources:
+#        limits:
+#          cpus: '0.4'
+#          memory: '1.0GB'
   
   api01:
     image: caravanacloud/rinhadebackend
@@ -34,11 +34,11 @@ services:
       - "9091:9090"
     links:
       - db
-    deploy:
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: '1.0GB'
+#    deploy:
+#      resources:
+#        limits:
+#          cpus: '0.8'
+#          memory: '1.0GB'
   
   api02:
     image: caravanacloud/rinhadebackend
@@ -57,11 +57,11 @@ services:
       - "9092:9090"
     links:
       - db
-    deploy:
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: '1.0GB'
+#    deploy:
+#      resources:
+#        limits:
+#          cpus: '0.1'
+#          memory: '0.25GB'
 
   nginx:
     image: nginx:latest
@@ -75,11 +75,11 @@ services:
       - api02
     ports:
       - "9999:9999"
-    deploy:
-      resources:
-        limits:
-          cpus: '0.25'
-          memory: '0.1GB'
+#    deploy:
+#      resources:
+#        limits:
+#          cpus: '0.2'
+#          memory: '0.25GB'
 
 networks:
   default:

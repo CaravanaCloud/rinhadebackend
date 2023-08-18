@@ -8,6 +8,7 @@ tasks:
       mvn clean install
       mkdir -p "$HOME/projects/"
       ln -sf "/workspace/rinha-de-backend-2023-q3" "$HOME/projects/rinha-de-backend-2023-q3"
+      ln -sf "/workspace/rinha-de-backend-2023-q3" "/workspace/rinhadebackend/"
       echo "done init rinha"
     command: echo "welcome to the rinha"
 
