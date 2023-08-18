@@ -50,10 +50,23 @@ public class PessoaRoutes {
     }
 
     @Route(methods = Route.HttpMethod.GET, path = "/pessoas/:id", produces = ReactiveRoutes.APPLICATION_JSON, order = 2)
-    Uni<Pessoa> findPessoaById(@Param("id") Optional<String> uuidParam, RoutingExchange ex) {
+    void findPessoaById(@Param("id") Optional<String> uuidParam, RoutingExchange ex) {
         // TODO: UUID pode ser inválido
-        UUID uuid = UUID.fromString(uuidParam.get());
-        return sessionFactory.withSession(session -> session.find(Pessoa.class, uuid));
+        if (uuidParam.isEmpty()) {
+            ex.response().setStatusCode(400).end();
+        } else {
+            UUID uuid = UUID.fromString(uuidParam.get());
+            sessionFactory.withSession(session -> session.find(Pessoa.class, uuid)).subscribe().with(
+                    pessoa -> {
+                        if (pessoa == null) {
+                            ex.response().setStatusCode(404).end();
+                        } else {
+                            ex.response().setStatusCode(200).end(JsonObject.mapFrom(pessoa).encode());
+                        }
+                    },
+                    t -> ex.response().setStatusCode(500).end()
+            );
+        }
     }
 
 
