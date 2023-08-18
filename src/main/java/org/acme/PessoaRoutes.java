@@ -12,6 +12,8 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.reactive.mutiny.Mutiny;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.DateTimeException;
 import java.time.format.DateTimeParseException;
@@ -26,7 +28,7 @@ import java.util.UUID;
  */
 @ApplicationScoped
 public class PessoaRoutes {
-
+    static final Logger log = LoggerFactory.getLogger(PessoaRoutes.class);
     @Inject
     Mutiny.SessionFactory sessionFactory;
 
@@ -82,14 +84,14 @@ public class PessoaRoutes {
         }
     }
 
-    private Void badRequest(RoutingExchange ex, String message) {
-        ex.response()
-                .putHeader("x-bad-request-msg", message)
-                .setStatusCode(422)
+    private void badRequest(RoutingExchange ex, String message) {
+        log.warn("bad request: {}", message);
+        response(ex,400)
+                .putHeader("x-badrequest-message", message)
                 .end();
-        return null;
     }
     private void unprocessable(RoutingExchange ex, String message) {
+        log.warn("unprocessable: {}", message);
         response(ex,422)
                 .putHeader("x-unacceptable-message", message)
                 .end();
