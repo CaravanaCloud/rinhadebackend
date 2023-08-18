@@ -1,6 +1,9 @@
 package org.acme;
 
 import io.quarkus.test.junit.QuarkusTest;
+import jakarta.inject.Inject;
+import org.hibernate.reactive.mutiny.Mutiny;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static io.restassured.RestAssured.given;
@@ -9,6 +12,15 @@ import static org.hamcrest.Matchers.matchesRegex;
 
 @QuarkusTest
 public class PessoasTest {
+
+    @Inject
+    Mutiny.SessionFactory sessionFactory;
+
+    @BeforeEach
+    void setUp() {
+        sessionFactory.withStatelessTransaction((session, tx) -> session.createQuery("delete from Pessoa").executeUpdate())
+                .await().indefinitely();
+    }
 
     @Test
     public void testContagemPessoas() {
@@ -22,7 +34,7 @@ public class PessoasTest {
 
     @Test
     public void testCriarPessoaValida() {
-        Pessoa novaPessoa = given()
+        String location = given()
                 .when()
                 .header("Content-Type", "application/json")
                 .body("""
@@ -35,21 +47,17 @@ public class PessoasTest {
                         """)
                 .post("/pessoas")
                 .then()
-                .statusCode(200)
-                .extract().body().as(Pessoa.class);
-        assertThat(novaPessoa.id).isNotNull();
-        assertThat(novaPessoa.apelido).isEqualTo("josé");
+                .statusCode(201)
+                .extract().header("Location");
 
-        Pessoa getPessoa = given()
+        Pessoa pessoa = given()
                 .when()
                 .header("Content-Type", "application/json")
-                .get("/pessoas/" + novaPessoa.id)
+                .get(location)
                 .then().statusCode(200)
                 .extract().body().as(Pessoa.class);
 
-        assertThat(getPessoa)
-                .usingRecursiveComparison()
-                .isEqualTo(novaPessoa);
+        assertThat(pessoa.id).isNotNull();
     }
 
     @Test
@@ -79,6 +87,73 @@ public class PessoasTest {
                         {
                             "apelido" : "josé",
                             "nome" : null,
+                            "nascimento" : "2000-10-01",
+                            "stack" : ["C#", "Node", "Oracle"]
+                        }
+                        """)
+                .post("/pessoas")
+                .then()
+                .log().all()
+                .statusCode(422);
+    }
+
+    @Test
+    public void testProcurarPorTermo() {
+        given()
+                .when()
+                .header("Content-Type", "application/json")
+                .body("""
+                        {
+                            "apelido" : "joaquim",
+                            "nome" : "Joaquim Silva",
+                            "nascimento" : "1980-12-01",
+                            "stack" : ["C#", "Node", "Oracle", "Java"]
+                        }
+                        """)
+                .post("/pessoas")
+                .then()
+                .statusCode(200);
+
+        given()
+                .when()
+                .header("Content-Type", "application/json")
+                .get("/pessoas?t=silva")
+                .then().statusCode(200);
+    }
+
+    @Test
+    public void termoVazioDeveRetornar400() {
+        given()
+                .when()
+                .header("Content-Type", "application/json")
+                .get("/pessoas")
+                .then().statusCode(400);
+    }
+
+    @Test
+    public void apelidoDeveSerUnico() {
+        given()
+                .when()
+                .header("Content-Type", "application/json")
+                .body("""
+                        {
+                            "apelido" : "josé",
+                            "nome" : "José Roberto",
+                            "nascimento" : "2000-10-01",
+                            "stack" : ["C#", "Node", "Oracle"]
+                        }
+                        """)
+                .post("/pessoas")
+                .then()
+                .statusCode(201);
+
+        given()
+                .when()
+                .header("Content-Type", "application/json")
+                .body("""
+                        {
+                            "apelido" : "josé",
+                            "nome" : "José Roberto",
                             "nascimento" : "2000-10-01",
                             "stack" : ["C#", "Node", "Oracle"]
                         }

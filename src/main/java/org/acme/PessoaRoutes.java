@@ -1,18 +1,18 @@
 package org.acme;
 
-import io.quarkus.vertx.web.Body;
 import io.quarkus.vertx.web.Param;
 import io.quarkus.vertx.web.ReactiveRoutes;
 import io.quarkus.vertx.web.Route;
 import io.quarkus.vertx.web.RoutingExchange;
 import io.smallrye.mutiny.Uni;
-import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.RoutingContext;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.validation.ConstraintViolationException;
 import org.hibernate.reactive.mutiny.Mutiny;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -32,8 +32,20 @@ public class PessoaRoutes {
     }
 
     @Route(methods = Route.HttpMethod.POST, path = "/pessoas", produces = ReactiveRoutes.APPLICATION_JSON, order = 2)
-    Uni<Pessoa> createPessoa(@Body Pessoa pessoa, RoutingExchange ex) {
-        return sessionFactory.withStatelessSession(session -> session.insert(pessoa).replaceWith(pessoa));
+    void createPessoa(RoutingContext routingContext, RoutingExchange ex) {
+        JsonObject jsonObject = routingContext.body().asJsonObject();
+        Map<String, Object> attrs = jsonObject.getMap();
+        if (isInvalid(attrs)) {
+            ex.response().setStatusCode(422).end();
+        } else if (isSyntheticallyInvalid(attrs)) {
+            ex.response().setStatusCode(400).end();
+        } else {
+            Pessoa pessoa = jsonObject.mapTo(Pessoa.class);
+            sessionFactory.withStatelessSession(session -> session.insert(pessoa)).subscribe().with(
+                    v -> ex.response().setStatusCode(201).putHeader("Location", "/pessoas/" + pessoa.id).end(),
+                    t -> ex.response().setStatusCode(422).end()
+            );
+        }
     }
 
     @Route(methods = Route.HttpMethod.GET, path = "/pessoas/:id", produces = ReactiveRoutes.APPLICATION_JSON, order = 2)
@@ -45,17 +57,27 @@ public class PessoaRoutes {
 
 
     @Route(methods = Route.HttpMethod.GET, path = "/pessoas", produces = ReactiveRoutes.APPLICATION_JSON, order = 3)
-    Uni<List<Pessoa>> findPessoa(@Param("t") Optional<String> termo, RoutingExchange ex) {
-        if (termo.isEmpty()) {
-            ex.notFound().end();
+    Uni<List<Pessoa>> findPessoa(@Param("t") String termo, RoutingExchange ex) {
+        if (termo == null || termo.isEmpty()) {
+            ex.response().setStatusCode(400).end();
+            return Uni.createFrom().nothing();
         }
         return sessionFactory.withSession(session ->
                 session.createQuery("select p from Pessoa p", Pessoa.class)
                         .setMaxResults(50).getResultList());
     }
 
-    @Route(type = Route.HandlerType.FAILURE, order = 1)
-    void validationException(ConstraintViolationException e, HttpServerResponse response) {
-        response.setStatusCode(422).end(e.getMessage());
+    private boolean isSyntheticallyInvalid(Map<String, Object> fields) {
+        if (!(fields.get("apelido") instanceof String)) return true;
+        if (!(fields.get("nome") instanceof String)) return true;
+        return false;
     }
+
+    private boolean isInvalid(Map<String, Object> fields) {
+        if (fields.get("apelido") == null) return true;
+        if (fields.get("nome") == null) return true;
+        if (fields.get("nascimento") == null) return true;
+        return false;
+    }
+
 }
