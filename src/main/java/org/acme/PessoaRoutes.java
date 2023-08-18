@@ -123,7 +123,7 @@ public class PessoaRoutes {
             return result;
         } catch (Exception e) {
            e.printStackTrace();
-           log.error("term search error:" +e.getMessage());
+           log.error("term search error("+termo+"):" +e.getMessage());
            return Uni.createFrom().failure(e);
         }
     }
