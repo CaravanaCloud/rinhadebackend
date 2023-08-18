@@ -49,10 +49,11 @@ public class PessoaRoutes {
                 return;
             }
             var pessoa = jsonObject.mapTo(Pessoa.class);
-            sessionFactory.withStatelessSession(session -> session.insert(pessoa)).subscribe().with(
-                    v -> ex.response().setStatusCode(201).putHeader("Location", "/pessoas/" + pessoa.id).end(),
-                    t -> ex.response().setStatusCode(422).end()
-            );
+            sessionFactory.withStatelessSession(session -> session.insert(pessoa))
+                    .subscribe()
+                    .with(
+                        v -> ex.response().setStatusCode(201).putHeader("Location", "/pessoas/" + pessoa.id).end(),
+                        t -> ex.response().setStatusCode(422).end());
         } catch (DateTimeParseException e) {
             unprocessable(ex, e, "date format is invalid");
         } catch (Exception e) {
@@ -60,8 +61,6 @@ public class PessoaRoutes {
             unprocessable(ex, e, e.getMessage());
         }
     }
-
-}
 
     private void unprocessable(RoutingExchange ex, Exception e, String message) {
         ex.response()
