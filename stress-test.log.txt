@@ -18,3 +18,9 @@
 [INFO] Nothing to compile - all classes are up to date
 Picked up JAVA_TOOL_OPTIONS:  -Xmx12884m
 Listening for transport dt_socket at address: 5005
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  14:08 min
+[INFO] Finished at: 2023-08-18T14:26:41Z
+[INFO] ------------------------------------------------------------------------
