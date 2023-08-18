@@ -1,5 +1,6 @@
 package org.acme;
 
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import io.quarkus.vertx.web.Param;
 import io.quarkus.vertx.web.ReactiveRoutes;
 import io.quarkus.vertx.web.Route;
@@ -11,6 +12,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.hibernate.reactive.mutiny.Mutiny;
 
+import java.time.DateTimeException;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Locale;
@@ -36,29 +38,33 @@ public class PessoaRoutes {
     }
 
     @Route(methods = Route.HttpMethod.POST, path = "/pessoas", produces = ReactiveRoutes.APPLICATION_JSON, order = 2)
-    Void createPessoa(RoutingContext routingContext, RoutingExchange ex) {
+    void createPessoa(RoutingContext routingContext, RoutingExchange ex) {
         try {
             JsonObject jsonObject = routingContext.body().asJsonObject();
             Map<String, Object> attrs = jsonObject.getMap();
             if (isInvalid(attrs)) {
-                return unprocessable(ex, "invalid");
+                unprocessable(ex, "invalid");
+                return;
             }
             if (isSyntheticallyInvalid(attrs)) {
-                return badRequest(ex, "synthetically-invalid");
+                badRequest(ex, "synthetically-invalid");
+                return;
             }
             var pessoa = jsonObject.mapTo(Pessoa.class);
             sessionFactory.withStatelessSession(session -> session.insert(pessoa))
                     .subscribe()
                     .with(
-                        v -> ex.response().setStatusCode(201).putHeader("Location", "/pessoas/" + pessoa.id).end(),
-                        t -> ex.response().setStatusCode(422).end());
-        } catch (DateTimeParseException e) {
-            return unprocessable(ex, "date format is invalid");
+                            v -> ex.response().setStatusCode(201).putHeader("Location", "/pessoas/" + pessoa.id).end(),
+                            t -> ex.response().setStatusCode(422).end());
+            return;
+        }catch (DateTimeException e) {
+            unprocessable(ex, "date format is invalid: "+e.getMessage());
+            return;
         } catch (Exception e) {
             e.printStackTrace();
-            return unprocessable(ex, e.getMessage());
+            unprocessable(ex, e.getMessage());
+            return;
         }
-        return null;
     }
 
     private Void badRequest(RoutingExchange ex, String message) {
