@@ -36,17 +36,15 @@ public class PessoaRoutes {
     }
 
     @Route(methods = Route.HttpMethod.POST, path = "/pessoas", produces = ReactiveRoutes.APPLICATION_JSON, order = 2)
-    void createPessoa(RoutingContext routingContext, RoutingExchange ex) {
+    Void createPessoa(RoutingContext routingContext, RoutingExchange ex) {
         try {
             JsonObject jsonObject = routingContext.body().asJsonObject();
             Map<String, Object> attrs = jsonObject.getMap();
             if (isInvalid(attrs)) {
-                ex.response().setStatusCode(422).end();
-                return;
+                return unprocessable(ex, "invalid");
             }
             if (isSyntheticallyInvalid(attrs)) {
-                ex.response().setStatusCode(400).end();
-                return;
+                return badRequest(ex, "synthetically-invalid");
             }
             var pessoa = jsonObject.mapTo(Pessoa.class);
             sessionFactory.withStatelessSession(session -> session.insert(pessoa))
@@ -55,18 +53,27 @@ public class PessoaRoutes {
                         v -> ex.response().setStatusCode(201).putHeader("Location", "/pessoas/" + pessoa.id).end(),
                         t -> ex.response().setStatusCode(422).end());
         } catch (DateTimeParseException e) {
-            unprocessable(ex, e, "date format is invalid");
+            return unprocessable(ex, "date format is invalid");
         } catch (Exception e) {
             e.printStackTrace();
-            unprocessable(ex, e, e.getMessage());
+            return unprocessable(ex, e.getMessage());
         }
+        return null;
     }
 
-    private void unprocessable(RoutingExchange ex, Exception e, String message) {
+    private Void badRequest(RoutingExchange ex, String message) {
+        ex.response()
+                .putHeader("x-bad-request-msg", message)
+                .setStatusCode(422)
+                .end();
+        return null;
+    }
+    private Void unprocessable(RoutingExchange ex, String message) {
         ex.response()
                 .putHeader("x-unacceptable-message", message)
                 .setStatusCode(422)
                 .end();
+        return null;
     }
 
     @Route(methods = Route.HttpMethod.GET, path = "/pessoas/:id", produces = ReactiveRoutes.APPLICATION_JSON, order = 2)
