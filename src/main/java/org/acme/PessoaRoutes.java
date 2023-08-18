@@ -12,6 +12,7 @@ import jakarta.inject.Inject;
 import org.hibernate.reactive.mutiny.Mutiny;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -63,7 +64,8 @@ public class PessoaRoutes {
             return Uni.createFrom().nothing();
         }
         return sessionFactory.withSession(session ->
-                session.createQuery("select p from Pessoa p", Pessoa.class)
+                session.createNamedQuery("Pessoa.findByTermo", Pessoa.class)
+                        .setParameter("termo", "%" + termo.toLowerCase(Locale.ENGLISH) + "%")
                         .setMaxResults(50).getResultList());
     }
 

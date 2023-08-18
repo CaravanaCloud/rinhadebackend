@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.matchesRegex;
+import static org.hamcrest.Matchers.*;
 
 @QuarkusTest
 public class PessoasTest {
@@ -118,7 +118,10 @@ public class PessoasTest {
                 .when()
                 .header("Content-Type", "application/json")
                 .get("/pessoas?t=silva")
-                .then().statusCode(200);
+                .then()
+                .log().ifValidationFails()
+                .statusCode(200)
+                .body("$", hasSize(1));
     }
 
     @Test

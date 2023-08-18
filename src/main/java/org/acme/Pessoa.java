@@ -18,7 +18,13 @@ import java.util.UUID;
 
 @Entity
 @NamedQueries({
-        @NamedQuery(name = "Pessoa.count", query = "SELECT count(p.id) FROM Pessoa p")
+        @NamedQuery(name = "Pessoa.count", query = "SELECT count(p.id) FROM Pessoa p"),
+        @NamedQuery(name = "Pessoa.findByTermo", query = """
+                SELECT p FROM Pessoa p
+                where p.nome ilike :termo
+                or p.apelido ilike :termo
+                or jsonb_pretty(p.stack) ilike :termo
+        """)
 })
 public class Pessoa {
 
