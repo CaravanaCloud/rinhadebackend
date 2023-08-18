@@ -41,11 +41,15 @@ public class PessoaRoutes {
         } else if (isSyntheticallyInvalid(attrs)) {
             ex.response().setStatusCode(400).end();
         } else {
-            Pessoa pessoa = jsonObject.mapTo(Pessoa.class);
-            sessionFactory.withStatelessSession(session -> session.insert(pessoa)).subscribe().with(
-                    v -> ex.response().setStatusCode(201).putHeader("Location", "/pessoas/" + pessoa.id).end(),
-                    t -> ex.response().setStatusCode(422).end()
-            );
+            try {
+                var pessoa = jsonObject.mapTo(Pessoa.class);
+                sessionFactory.withStatelessSession(session -> session.insert(pessoa)).subscribe().with(
+                        v -> ex.response().setStatusCode(201).putHeader("Location", "/pessoas/" + pessoa.id).end(),
+                        t -> ex.response().setStatusCode(422).end()
+                );
+            } catch (Exception e){
+                ex.response().setStatusCode(422).end();
+            }
         }
     }
 
@@ -54,7 +58,9 @@ public class PessoaRoutes {
         // TODO: UUID pode ser inválido
         if (uuidParam.isEmpty()) {
             ex.response().setStatusCode(400).end();
-        } else {
+            return;
+        }
+        try {
             UUID uuid = UUID.fromString(uuidParam.get());
             sessionFactory.withSession(session -> session.find(Pessoa.class, uuid)).subscribe().with(
                     pessoa -> {
@@ -66,6 +72,8 @@ public class PessoaRoutes {
                     },
                     t -> ex.response().setStatusCode(500).end()
             );
+        } catch (IllegalArgumentException e){
+            ex.response().setStatusCode(400).end();
         }
     }
 

@@ -25,6 +25,8 @@ vscode:
     - redhat.java
     - redhat.fabric8-analytics
     - ms-azuretools.vscode-docker
+    - github.vscode-github-actions
+
 
 ports:
   - port: 3306
