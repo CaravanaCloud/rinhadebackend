@@ -61,61 +61,26 @@ public class PessoaRoutes {
                                     .putHeader("Location", "/pessoas/" + pessoa.id)
                                     .end(),
                             t -> {
-                                if (t instanceof ConstraintViolationException){
+                                if (t instanceof ConstraintViolationException) {
                                     unprocessable(ex, "constraint violation:" + t.getMessage());
                                 } else {
-                                    unprocessable(ex, "insert failed:"+t.getMessage());
+                                    unprocessable(ex, "insert failed:" + t.getMessage());
                                 }
                             });
         } catch (ConstraintViolationException e) {
             unprocessable(ex, "constraint violation:" + e.getMessage());
-        }
-        catch (IllegalArgumentException e){
+        } catch (IllegalArgumentException e) {
             unprocessable(ex, "illegal argument:" + e.getMessage());
-        }
-        catch (DateTimeParseException e) {
+        } catch (DateTimeParseException e) {
             unprocessable(ex, "unable to parse:" + e.getMessage());
-        }
-        catch (DateTimeException e) {
-            unprocessable(ex, "date format is invalid: "+e.getMessage());
+        } catch (DateTimeException e) {
+            unprocessable(ex, "date format is invalid: " + e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
             unprocessable(ex, e.getMessage());
         }
     }
 
-    private void badRequest(RoutingExchange ex, String message) {
-        log.warn("bad request: {}", message);
-        response(ex,400)
-                .putHeader("x-badrequest-message", message)
-                .end();
-    }
-    private void ok(RoutingExchange ex, String body) {
-        response(ex,200)
-                .end(body);
-    }
-    private void notFound(RoutingExchange ex, String message) {
-        log.warn("not found: {}", message);
-        response(ex,404)
-                .putHeader("x-notfound-message", message)
-                .end();
-    }
-    private void serverError(RoutingExchange ex, String message) {
-        log.warn("server error: {}", message);
-        response(ex,500)
-                .putHeader("x-servererror-message", message)
-                .end();
-    }
-    private void unprocessable(RoutingExchange ex, String message) {
-        log.warn("unprocessable: {}", message);
-        response(ex,422)
-                .putHeader("x-unacceptable-message", message)
-                .end();
-    }
-
-    private HttpServerResponse response(RoutingExchange ex, int status) {
-        return ex.response().setStatusCode(status);
-    }
 
     @Route(methods = Route.HttpMethod.GET, path = "/pessoas/:id", produces = ReactiveRoutes.APPLICATION_JSON, order = 2)
     void findPessoaById(@Param("id") Optional<String> uuidParam, RoutingExchange ex) {
@@ -169,6 +134,43 @@ public class PessoaRoutes {
         if (fields.get("nome") == null) return true;
         if (fields.get("nascimento") == null) return true;
         return false;
+    }
+
+    private void badRequest(RoutingExchange ex, String message) {
+        log.warn("bad request: {}", message);
+        response(ex, 400)
+                .putHeader("x-badrequest-message", message)
+                .end();
+    }
+
+    private void ok(RoutingExchange ex, String body) {
+        response(ex, 200)
+                .end(body);
+    }
+
+    private void notFound(RoutingExchange ex, String message) {
+        log.warn("not found: {}", message);
+        response(ex, 404)
+                .putHeader("x-notfound-message", message)
+                .end();
+    }
+
+    private void serverError(RoutingExchange ex, String message) {
+        log.warn("server error: {}", message);
+        response(ex, 500)
+                .putHeader("x-servererror-message", message)
+                .end();
+    }
+
+    private void unprocessable(RoutingExchange ex, String message) {
+        log.warn("unprocessable: {}", message);
+        response(ex, 422)
+                .putHeader("x-unacceptable-message", message)
+                .end();
+    }
+
+    private HttpServerResponse response(RoutingExchange ex, int status) {
+        return ex.response().setStatusCode(status);
     }
 
 }
