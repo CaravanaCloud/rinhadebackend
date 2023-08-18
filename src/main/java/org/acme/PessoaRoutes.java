@@ -10,6 +10,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.reactive.mutiny.Mutiny;
 
 import java.time.DateTimeException;
@@ -58,7 +59,10 @@ public class PessoaRoutes {
                                     .putHeader("Location", "/pessoas/" + pessoa.id)
                                     .end(),
                             t -> {t.printStackTrace(); unprocessable(ex, t.getMessage());});
-        } catch (IllegalArgumentException e){
+        } catch (ConstraintViolationException e) {
+            unprocessable(ex, "constraint violation:" + e.getMessage());
+        }
+        catch (IllegalArgumentException e){
             unprocessable(ex, "illegal argument:" + e.getMessage());
         }
         catch (DateTimeParseException e) {
