@@ -56,7 +56,7 @@ public class PessoaRoutes {
                     .with(
                             v -> ex.response().setStatusCode(201).putHeader("Location", "/pessoas/" + pessoa.id).end(),
                             t -> ex.response().setStatusCode(422).end());
-        } catch (IllegalArgumentException){
+        } catch (IllegalArgumentException e){
             unprocessable(ex, "illegal argument:" + e.getMessage());
         }
         catch (DateTimeParseException e) {
