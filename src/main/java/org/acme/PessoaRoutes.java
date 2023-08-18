@@ -90,6 +90,22 @@ public class PessoaRoutes {
                 .putHeader("x-badrequest-message", message)
                 .end();
     }
+    private void ok(RoutingExchange ex, String body) {
+        response(ex,200)
+                .end(body);
+    }
+    private void notFound(RoutingExchange ex, String message) {
+        log.warn("not found: {}", message);
+        response(ex,404)
+                .putHeader("x-notfound-message", message)
+                .end();
+    }
+    private void serverError(RoutingExchange ex, String message) {
+        log.warn("server error: {}", message);
+        response(ex,500)
+                .putHeader("x-servererror-message", message)
+                .end();
+    }
     private void unprocessable(RoutingExchange ex, String message) {
         log.warn("unprocessable: {}", message);
         response(ex,422)
@@ -113,12 +129,13 @@ public class PessoaRoutes {
             sessionFactory.withSession(session -> session.find(Pessoa.class, uuid)).subscribe().with(
                     pessoa -> {
                         if (pessoa == null) {
-                            ex.response().setStatusCode(404).end();
+                            notFound(ex, "pessoa not found");
                         } else {
-                            ex.response().setStatusCode(200).end(JsonObject.mapFrom(pessoa).encode());
+                            var body = JsonObject.mapFrom(pessoa).encode();
+                            ok(ex, body);
                         }
                     },
-                    t -> ex.response().setStatusCode(500).end()
+                    t -> serverError(ex, t.getMessage())
             );
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
@@ -133,10 +150,11 @@ public class PessoaRoutes {
             ex.response().setStatusCode(400).end();
             return Uni.createFrom().nothing();
         }
-        return sessionFactory.withSession(session ->
+        var result = sessionFactory.withSession(session ->
                 session.createNamedQuery("Pessoa.findByTermo", Pessoa.class)
                         .setParameter("termo", "%" + termo.toLowerCase(Locale.ENGLISH) + "%")
                         .setMaxResults(50).getResultList());
+        return result;
     }
 
     private boolean isSyntheticallyInvalid(Map<String, Object> fields) {
