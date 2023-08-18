@@ -57,7 +57,12 @@ public class PessoaRoutes {
                             v -> ex.response().setStatusCode(201).putHeader("Location", "/pessoas/" + pessoa.id).end(),
                             t -> ex.response().setStatusCode(422).end());
             return;
-        }catch (DateTimeException e) {
+        }
+        catch (DateTimeParseException e) {
+            unprocessable(ex, "unable to parse:" + e.getMessage());
+            return;
+        }
+        catch (DateTimeException e) {
             unprocessable(ex, "date format is invalid: "+e.getMessage());
             return;
         } catch (Exception e) {
@@ -122,6 +127,7 @@ public class PessoaRoutes {
     private boolean isSyntheticallyInvalid(Map<String, Object> fields) {
         if (!(fields.get("apelido") instanceof String)) return true;
         if (!(fields.get("nome") instanceof String)) return true;
+        if (!(fields.get("stack") instanceof List)) return true;
         return false;
     }
 
