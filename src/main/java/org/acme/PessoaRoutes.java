@@ -111,14 +111,20 @@ public class PessoaRoutes {
     @Route(methods = Route.HttpMethod.GET, path = "/pessoas", produces = ReactiveRoutes.APPLICATION_JSON, order = 3)
     Uni<List<Pessoa>> findPessoa(@Param("t") String termo, RoutingExchange ex) {
         if (termo == null || termo.isEmpty()) {
-            ex.response().setStatusCode(400).end();
+            badRequest(ex, "empty term");
             return Uni.createFrom().nothing();
         }
-        var result = sessionFactory.withSession(session ->
-                session.createNamedQuery("Pessoa.findByTermo", Pessoa.class)
-                        .setParameter("termo", "%" + termo.toLowerCase(Locale.ENGLISH) + "%")
-                        .setMaxResults(50).getResultList());
-        return result;
+        try {
+            var result = sessionFactory.withSession(session ->
+                    session.createNamedQuery("Pessoa.findByTermo", Pessoa.class)
+                            .setParameter("termo", "%" + termo.toLowerCase(Locale.ENGLISH) + "%")
+                            .setMaxResults(50)
+                            .getResultList());
+            return result;
+        } catch (Exception e) {
+           e.printStackTrace();
+           return Uni.createFrom().failure(e);
+        }
     }
 
     private boolean isSyntheticallyInvalid(Map<String, Object> fields) {
