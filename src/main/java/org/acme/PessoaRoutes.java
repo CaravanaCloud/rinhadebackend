@@ -1,11 +1,11 @@
 package org.acme;
 
-import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import io.quarkus.vertx.web.Param;
 import io.quarkus.vertx.web.ReactiveRoutes;
 import io.quarkus.vertx.web.Route;
 import io.quarkus.vertx.web.RoutingExchange;
 import io.smallrye.mutiny.Uni;
+import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -54,8 +54,10 @@ public class PessoaRoutes {
             sessionFactory.withStatelessSession(session -> session.insert(pessoa))
                     .subscribe()
                     .with(
-                            v -> ex.response().setStatusCode(201).putHeader("Location", "/pessoas/" + pessoa.id).end(),
-                            t -> ex.response().setStatusCode(422).end());
+                            v -> response(ex, 201)
+                                    .putHeader("Location", "/pessoas/" + pessoa.id)
+                                    .end(),
+                            t -> unprocessable(ex, t.getMessage()));
         } catch (IllegalArgumentException e){
             unprocessable(ex, "illegal argument:" + e.getMessage());
         }
@@ -77,12 +79,14 @@ public class PessoaRoutes {
                 .end();
         return null;
     }
-    private Void unprocessable(RoutingExchange ex, String message) {
-        ex.response()
+    private void unprocessable(RoutingExchange ex, String message) {
+        response(ex,422)
                 .putHeader("x-unacceptable-message", message)
-                .setStatusCode(422)
                 .end();
-        return null;
+    }
+
+    private HttpServerResponse response(RoutingExchange ex, int status) {
+        return ex.response().setStatusCode(status);
     }
 
     @Route(methods = Route.HttpMethod.GET, path = "/pessoas/:id", produces = ReactiveRoutes.APPLICATION_JSON, order = 2)
