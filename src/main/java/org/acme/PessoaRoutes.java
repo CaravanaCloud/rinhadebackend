@@ -56,19 +56,17 @@ public class PessoaRoutes {
                     .with(
                             v -> ex.response().setStatusCode(201).putHeader("Location", "/pessoas/" + pessoa.id).end(),
                             t -> ex.response().setStatusCode(422).end());
-            return;
+        } catch (IllegalArgumentException){
+            unprocessable(ex, "illegal argument:" + e.getMessage());
         }
         catch (DateTimeParseException e) {
             unprocessable(ex, "unable to parse:" + e.getMessage());
-            return;
         }
         catch (DateTimeException e) {
             unprocessable(ex, "date format is invalid: "+e.getMessage());
-            return;
         } catch (Exception e) {
             e.printStackTrace();
             unprocessable(ex, e.getMessage());
-            return;
         }
     }
 
