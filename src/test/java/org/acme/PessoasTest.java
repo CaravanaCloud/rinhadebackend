@@ -112,7 +112,7 @@ public class PessoasTest {
                         """)
                 .post("/pessoas")
                 .then()
-                .statusCode(200);
+                .statusCode(201);
 
         given()
                 .when()
